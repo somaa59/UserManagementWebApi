@@ -15,12 +15,14 @@ namespace UserManagementWebApi.Services.AuthService
         #region Fieldes 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtService _jwtService;
+        private readonly RoleManager<IdentityRole> _roleManager;
         #endregion
         #region constructor
-        public AuthService(UserManager<ApplicationUser> userManager ,IJwtService jwtService)
+        public AuthService(UserManager<ApplicationUser> userManager ,IJwtService jwtService,RoleManager<IdentityRole> roleManager )
         {
             _userManager = userManager;
             _jwtService = jwtService;
+            _roleManager = roleManager;
         }
         #endregion
         public async Task<AuthModel> RegisterAsync(SignUpDto model)
@@ -90,6 +92,23 @@ namespace UserManagementWebApi.Services.AuthService
             authModel.Roles = (await _userManager.GetRolesAsync(user)).ToList();
             return authModel;
         }
+        public async Task<StateDto> AssignRoleAsync(AddRoleDto model)
+        {
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user is null || !await _roleManager.RoleExistsAsync(model.Role))
+                return new StateDto { Flag = false, Message = " UserId or Role are Invalid" };
+            if(await _userManager.IsInRoleAsync(user ,model.Role))
+                return new StateDto { Flag = false, Message = " User already assignd to this Role" };
+
+            var result = await _userManager.AddToRoleAsync(user, model.Role);
+            if (!result.Succeeded)
+            {
+                var errors = string.Join(",", result.Errors.Select(e => e.Description));
+                return new StateDto { Flag = false, Message = errors };
+            }
+            return new StateDto { Flag = true, Message = "Success" };
+        }
+
         #region private Section
         private async Task<List<Claim>> GetUserClaimsAsync(ApplicationUser user)
         {

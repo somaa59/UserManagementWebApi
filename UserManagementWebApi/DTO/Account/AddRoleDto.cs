@@ -2,11 +2,11 @@
 
 namespace UserManagementWebApi.DTO.Account
 {
-    public class LoginDto
+    public class AddRoleDto
     {
         [Required]
-        public string Email { get; set; }
+        public string UserId { get; set; }
         [Required]
-        public string Password { get; set; }
-    }   
+        public string Role { get; set; }
+    }
 }

@@ -46,6 +46,20 @@ namespace UserManagementWebApi.Controllers
 
             return Ok(result);
         }
+        [Authorize(Roles="Admin")]
+        [HttpPost("addRole")]
+        public async Task<IActionResult> addRoleAsync([FromBody] AddRoleDto model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _authService.AssignRoleAsync(model);
+            if(!result.Flag)
+                return BadRequest(result.Message);
+
+            return Ok(new {result,model});
+        }
+        
     
     }
 }
